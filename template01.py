@@ -1,14 +1,17 @@
 #encoding: utf-8
 
-from flask import Flask,render_template,request,g
-from flask_sqlalchemy import SQLAlchemy
+from flask import Flask,render_template,request,g,url_for,redirect,session
 from utlls import login_log
+from exts import db
 import config
 
 
 app = Flask(__name__)
 app.config.from_object(config)
-db = SQLAlchemy(app)
+db.init_app(app)
+
+# with app.app_context():
+#     db.create_all()
 
 @app.route('/')
 def index():
@@ -25,6 +28,7 @@ def login():
 
         if username == 'dddoubao' and password =='111':
             g.username = 'dddoubao'
+            session['username'] = 'dddoubao'
             login_log()
             return '恭喜你，登录成功'
         else:
@@ -37,6 +41,20 @@ def login():
 @app.route('/list/')
 def list():
     return render_template('list.html')
+
+@app.route('/edit/')
+def edit():
+    if hasattr(g,'username'):
+        return '修改成功'
+    else:
+        return url_for('login')
+
+@app.before_request
+def my_before_request():
+    if session.get('username'):
+        g.username = session.get('username')
+
+
 
 
 if __name__ == '__main__':
